@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getReceiverSocketId  , io} from "../socket/socket.js";
 
 export const sendMessage = async(req,res) =>{
     // res.send("message is sended");
@@ -10,6 +11,9 @@ export const sendMessage = async(req,res) =>{
         const {id :receiverId} = req.params;
         //const senderId = req.userId but it will not work because we have todo authorization in message.routes.js for this we use middleware
         //after authorization now we can acces the userId
+        console.log(req.body);
+        console.log(req.params);
+        console.log(req.user);
         const senderId = req.user._id; //this is coming from protectRoutes 
 
         let conversation = await Conversation.findOne({
@@ -32,16 +36,24 @@ export const sendMessage = async(req,res) =>{
             conversation.messages.push(newMessage._id);
         }
 
-        //we will add Socket io functionality here
-
         
-
         //after pushing we have save them to DB but hte below steps takes time as they execute one by one
         // await conversation.save();
         // await newMessage.save();
 
         //to execute / save both of them in parallel we use
         await Promise.all([conversation.save() , newMessage.save()]);
+
+
+        //we will add Socket io functionality here
+
+        const receiverSocketId = getReceiverSocketId(receiverId);
+		if (receiverSocketId) {
+			// io.to(<socket_id>).emit() used to send events to specific client
+			io.to(receiverSocketId).emit("newMessage", newMessage);
+		}
+        
+
 
         res.status(200).json(newMessage);
 
@@ -59,18 +71,18 @@ export const getMessages = async(req,res) =>{
 
         const conversation = await Conversation.findOne({
             participants : {$all : [senderId , userToChatId]},
-        }).populate("messages") //inorder to get the messages from Messagemodel  but is not refernce but actual messages
+        }).populate("messages"); //inorder to get the messages from Messagemodel  but is not refernce but actual messages
 
         if(!conversation){
-            res.status(200).json([]);
+            return res.status(200).json([]);
         }
 
-        const msgs = conversation.messages;
-        res.status(200).json(msgs);
+        const messages = conversation.messages;
+        res.status(200).json(messages);
 
     } 
     catch (error) {
-        console.log("Error in getMessages : " , error.message);
-        res.status(400).json({ error : "Internal server error"});
+        console.log("Error in getMessages controller: " , error.message);
+        res.status(500).json({ error : "Internal server error"});
     }
 }

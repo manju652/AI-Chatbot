@@ -16,9 +16,11 @@ export const signup = async (req,res) =>{
     */
     try {
         const {fullName , username , password , confirmPassword,gender} = req.body;
+
         if(password != confirmPassword){
             return res.status(400).json({error:"Passwords donnot match"});
         }
+        
         const user = await User.findOne({username});
 
         //if user already existed (signed up) in database
@@ -70,8 +72,8 @@ export const login = async(req,res) =>{
     try {
         const{username , password} = req.body;
         const user = await User.findOne({username});
-        const isPassword = await bcrypt.compare(password , user?.password || "");//if the user doesnot existed then there is no pssword existed this will throw error  so if user does not existed we return an ""(empty string as password)
-        if(!user || !isPassword){
+        const isPasswordCorrect = await bcrypt.compare(password , user?.password || "");//if the user doesnot existed then there is no pssword existed this will throw error  so if user does not existed we return an ""(empty string as password)
+        if(!user || !isPasswordCorrect){
             return res.status(400).json({error : "Invalid username or password"});
         }
 
