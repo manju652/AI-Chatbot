@@ -1,4 +1,4 @@
-### Real-Time Chat Application  
+## Real-Time Chat Application  
 
 A real-time chat application built using the MERN stack, providing seamless messaging and user authentication.  
 
