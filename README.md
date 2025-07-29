@@ -26,4 +26,4 @@ A real-time chat application built using the MERN stack, providing seamless mess
 
 ## Getting Started  
 1. Clone the repository:  
-   git clone https://github.com/manunainala-git57/Chat-App-MERN.git
+   git clone https://github.com/manju652/AI-Chatbot.git
